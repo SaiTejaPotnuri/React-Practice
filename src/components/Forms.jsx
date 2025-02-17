@@ -1,12 +1,14 @@
 import "./formStyle.css";
-import { useContext, useState } from "react";
+import { useContext, useState,useEffect } from "react";
 import Authenticate from "../context/AuthContext";
 import Input from "../reuseble-components/Input";
+import { useNavigate } from "react-router-dom";
 function Forms(props) {
   //   let [userName,setUserName] = useState('');
   //   let [password,setPassword] = useState('');
 
   // like above for all Inputs we make use of useState instead of it we will create single useState for all inputs
+  const navigate = useNavigate();
 
   let [userInput, updateUserInput] = useState({
     userName: "",
@@ -14,6 +16,13 @@ function Forms(props) {
   });
 
   let auth = useContext(Authenticate);
+
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('token') === 'true';
+    if (isAuthenticated || auth.isLoggedIn) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [auth.isLoggedIn, navigate]);
   let handleUserName = (eve) => {
     // console.log("event from inpt" , eve.target.value);
     // setUserName(eve.target.value);
@@ -53,6 +62,7 @@ function Forms(props) {
       userName: "",
       password: "",
     });
+    navigate("/dashboard", { replace: true });
 
     // the below we are calling preventDefault() to prevent the for make a default behaviour of the submit form to reload the page
     eve.preventDefault();

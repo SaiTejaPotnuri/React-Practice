@@ -6,13 +6,13 @@ import React,{useState,useEffect,createContext} from 'react'
  */
 
   const AuthContext = createContext({
-    isLoggedIn: false,
+    isLoggedIn: localStorage.getItem("token") ? true : false,
     loginHandler: () => {},
     logoutHandler: () => {}
   });
   
   export function AuthProvider({ children }) {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("token") ? true : false);
   
     useEffect(() => {
       const storedToken = localStorage.getItem("token");

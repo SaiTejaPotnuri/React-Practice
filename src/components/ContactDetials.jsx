@@ -62,6 +62,9 @@ function ContactDetials() {
      */
     let [contactDetails, contactDetDispatcher] = useReducer(contactDetReducer,initialState)
 
+    if (page.existingPage !== "ContactDetails") {
+      return null;
+    }
     
   useEffect(() => {
 
@@ -116,7 +119,9 @@ function ContactDetials() {
         }
       };
 
-  return page.existingPage == "ContactDetails" ?  <>
+      {/**page.existingPage == "ContactDetails" ? <> : <> "Before using Router i used existing page to handle the page to display or not" */}
+
+  return   <>
             <div className="d-flex align-items-center justify-content-center mt-3">
       <div className="container py-1">
         <div className="row justify-content-center">
@@ -280,9 +285,6 @@ function ContactDetials() {
       </div>
       </div>
     </>
-    :
-    <></>
-  
 }
 
 export default ContactDetials;

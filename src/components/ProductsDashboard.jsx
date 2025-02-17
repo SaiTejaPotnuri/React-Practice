@@ -1,60 +1,78 @@
-import ProductHeader from "./ProductHeader";
-import ProductList from "./ProductList";
-import CreateProduct from "./CreateProduct";
-import { useContext, useState, useCallback } from "react";
-import ContactDetials from "./ContactDetials";
-import Authenticate from "../context/AuthContext";
+import { useState, useCallback, useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import ProductHeader from "../components/ProductHeader";
 import ProductsContext from "../context/ProductsContext";
-import React from "react";
-function ProductsDashboard(props) {
-  let [products, updateProducts] = useState([]);
-  let [page, updatePage] = useState("Add Product");
-  let auth = useContext(Authenticate);
 
-  {/**Here we make use of useCallback , it will not re-render when the component re-renders 
-    * When the parent having any state changes as react it re-renders all the child components
-    * But when we use useCallback it looks for if any change in value & method then only it weill re-render */}
-
-  const newProduct = useCallback((productInfo) => {
-    updateProducts((prev) => [
+const ProductsDashboard = () => {
+  const [products, setProducts] = useState([]);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Determine the active page based on the current path
+  const getActivePage = () => {
+    const path = location.pathname.split('/').pop();
+    if (path === 'add_products') return 'Add Product';
+    if (path === 'list_products') return 'Products';
+    if (path === 'contact_details') return 'ContactDetails';
+    return 'Add Product'; // Default
+  };
+  
+  const [activePage, setActivePage] = useState(getActivePage());
+  
+  // Update activePage when location changes
+  useEffect(() => {
+    setActivePage(getActivePage());
+  }, [location.pathname]);
+  
+  // Handle adding new product
+  const handleNewProduct = useCallback((productInfo) => {
+    setProducts((prev) => [
       ...prev,
       { ...productInfo, pId: prev.length + 1 }
     ]);
-        updatePage("Products");
-
-  }, []);
-
-  const pageChange = useCallback((newPage) => {
-    updatePage(newPage);
-  }, []);
-
-  const newProductList = useCallback((item) => {
-    updateProducts((prev) => 
+    // Navigate to products list after adding
+    navigate('/dashboard/list_products');
+    setActivePage('Products');
+  }, [navigate]);
+  
+  // Handle deleting product
+  const handleDeleteProduct = useCallback((item) => {
+    setProducts((prev) => 
       prev.filter((product) => product.pId !== item.pId)
     );
   }, []);
+  
+  // Handle page change from header
+  const handlePageChange = useCallback((newPage) => {
+    setActivePage(newPage);
+    
+    // Navigate based on the page name
+    if (newPage === 'Add Product') navigate('/dashboard/add_products');
+    else if (newPage === 'Products') navigate('/dashboard/list_products');
+    else if (newPage === 'ContactDetails') navigate('/dashboard/contact_details');
+  }, [navigate]);
 
-
-  return !auth.isLoggedIn ? (
-    <></>
-  ) : (
-    <>
+  return (
+    <ProductsContext.Provider 
+      value={{ 
+        products, 
+        onAddProduct: handleNewProduct,
+        onDeleteProduct: handleDeleteProduct,
+        existingPage: activePage,
+        onPageChange: handlePageChange
+      }}
+    >
       <div className="container">
         <div className="products-header">
           <ProductHeader
-            onPageChange={pageChange}
-            existingPage={page}
-          ></ProductHeader>
+            existingPage={activePage}
+            onPageChange={handlePageChange}
+          />
         </div>
-
-        <ProductsContext.Provider value={{ existingPage: page , onPageChange:pageChange }}>
-          <CreateProduct newProduct={newProduct} />
-          <ProductList products={products} onDelItem={newProductList} />
-          <ContactDetials />
-        </ProductsContext.Provider>
+        <Outlet />
       </div>
-    </>
+    </ProductsContext.Provider>
   );
-}
+};
 
 export default ProductsDashboard;

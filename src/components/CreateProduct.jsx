@@ -3,7 +3,6 @@ import ProductsContext from "../context/ProductsContext";
 
 
 function CreateProduct(props){
-
     let page = useContext(ProductsContext);
     let [product,setProduct] = useState({
         pName : "",
@@ -21,15 +20,20 @@ function CreateProduct(props){
             pDesc : product?.pDesc,
             isAvailable : Boolean(product?.isAvailable)
         }
-        props.newProduct(item);
-        setProduct({
-            pName : "",
-            pPrice : 0,
-            pDesc : "",
-            isAvailable : false
-        })
+        // props.newProduct(item);
+        // setProduct({
+        //     pName : "",
+        //     pPrice : 0,
+        //     pDesc : "",
+        //     isAvailable : false
+        // })
 
+        page.onAddProduct(item);
     }
+
+    if (page.existingPage !== "Add Product") {
+        return null;
+      }
 
     let updateName = (eve) =>{
         setProduct((prevState) => {
@@ -67,7 +71,8 @@ function CreateProduct(props){
         })
     }
 
-    return page.existingPage === "Add Product" ? <> 
+    {/** page.existingPage === "Add Product" ? <> : <> "Before routing i used to do with existing page condition" */}
+    return  <> 
         <div className="d-flex align-items-center justify-content-center mt-3">
          <div className="card mb-4" style={{width: "30rem"}}>
             <div className="card-header">
@@ -99,8 +104,7 @@ function CreateProduct(props){
         </div>
         </div>
     </>
-    :
-    <></>
+
 }
 
 export default CreateProduct;
