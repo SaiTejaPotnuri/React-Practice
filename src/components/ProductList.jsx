@@ -4,6 +4,7 @@ import { useEffect, useState, useContext, useMemo } from "react";
 import "./Products.css";
 import ProductsContext from "../context/ProductsContext";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
 
 function ProductList() {
   const productsCtx = useContext(ProductsContext);
@@ -22,6 +23,16 @@ function ProductList() {
     if (products.length !== productsCtx.products.length) {
       updateProductList([...productsCtx.products]);
     }
+
+
+    axios.get('https://react-practice-01-832c4-default-rtdb.firebaseio.com/products.json').then((res) => {
+      console.log(Object.values(res.data),"data");
+    }).catch((err) => {
+      console.log(err);
+    })
+
+
+
   }, [productsCtx.products]);
 
   useEffect(() => {
@@ -174,7 +185,7 @@ function ProductList() {
                       </span>
                     </div>
                     <div
-                      className="col-1 d-flex justify-content-center align-items-center "
+                      className="col-1 d-flex justify-content-center align-items-start "
                       style={{ color: "#ee0c0cbd" }}
                     >
                       <svg

@@ -55,7 +55,7 @@ function Forms(props) {
     // console.log("user details :",user)
     // props.submitForm(userInput.userName)
 
-    auth.loginHandler(JSON.stringify(user.userName));
+    auth.loginHandler(user);
 
     //clear all values of the form
     updateUserInput({

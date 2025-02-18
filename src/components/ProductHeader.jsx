@@ -2,11 +2,11 @@ import "./ProductHeaderStyle.css";
 import { useState, useContext, useEffect, useCallback } from "react";
 import Authenticate from "../context/AuthContext";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const ProductHeader = (props) => {
   console.log("product header enabled")
-  const [activePage, setActivePage] = useState("Add Product");
+  const [activePage, setActivePage] = useState("");
 
   let providerContext = useContext(Authenticate);
 
@@ -32,7 +32,7 @@ const ProductHeader = (props) => {
         <div className="container flex justify-content-between">
           <ul className="navbar-nav flex-row gap-4">
             <li className="nav-item">
-              <Link
+              <NavLink
                 to="/dashboard/add_products"
                 className={`nav-link ${
                   activePage === "Add Product"
@@ -43,10 +43,10 @@ const ProductHeader = (props) => {
                 style={{ cursor: "pointer" }}
               >
                 Add Product
-              </Link>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link
+              <NavLink
                 to="/dashboard/list_products"
                 className={`nav-link ${
                   activePage === "Products"
@@ -57,10 +57,10 @@ const ProductHeader = (props) => {
                 style={{ cursor: "pointer" }}
               >
                 Products
-              </Link>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link
+              <NavLink
                 to="/dashboard/contact_details"
                 className={`nav-link ${
                   activePage === "ContactDetails"
@@ -71,7 +71,7 @@ const ProductHeader = (props) => {
                 style={{ cursor: "pointer" }}
               >
                 Contact
-              </Link>
+              </NavLink>
             </li>
           </ul>
           <div className="signOut">

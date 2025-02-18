@@ -28,7 +28,22 @@ function CreateProduct(props){
         //     isAvailable : false
         // })
 
-        page.onAddProduct(item);
+
+        fetch('https://react-practice-01-832c4-default-rtdb.firebaseio.com/products.json',{
+            method: 'POST',
+            body: JSON.stringify(item),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then((res) => {
+            console.log(res.json);
+            page.onAddProduct(item);
+
+            // return res.json();
+        }).catch((err) => {
+            console.log(err);
+        })
+
     }
 
     if (page.existingPage !== "Add Product") {
