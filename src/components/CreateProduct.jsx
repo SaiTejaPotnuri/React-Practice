@@ -35,8 +35,9 @@ function CreateProduct(props){
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then((res) => {
-            console.log(res.json);
+        }).then((res) =>res.json()).then((res) =>{
+
+            item.id = res.name
             page.onAddProduct(item);
 
             // return res.json();

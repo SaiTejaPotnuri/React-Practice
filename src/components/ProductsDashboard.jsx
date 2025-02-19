@@ -28,7 +28,7 @@ const ProductsDashboard = () => {
   const handleNewProduct = useCallback((productInfo) => {
     setProducts((prev) => [
       ...prev,
-      { ...productInfo, pId: prev.length + 1 }
+      { ...productInfo}
     ]);
     // Navigate to products list after adding
     navigate('/dashboard/list_products');

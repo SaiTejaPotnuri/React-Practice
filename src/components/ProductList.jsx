@@ -17,6 +17,7 @@ function ProductList() {
   let [showDelModel, updateDelModel] = useState(false);
   let [delProduct, updateDelProduct] = useState({});
   let [searchProductkey, updateSearchProduct] = useState("");
+  let [fbProducts, updateFbProducts] = useState([]);
 
   // If we make empty array useEffect will run only once when the component is mounted even if component rendered any number of times
   useEffect(() => {
@@ -26,7 +27,17 @@ function ProductList() {
 
 
     axios.get('https://react-practice-01-832c4-default-rtdb.firebaseio.com/products.json').then((res) => {
-      console.log(Object.values(res.data),"data");
+      // console.log(Object.values(res.data),"data");
+      let list = [];
+        if(res.data !== null){
+          
+           list = Object.entries(res.data).map(([key, value]) => ({
+            ...value,
+            id: key
+          }));
+        }
+
+      updateFbProducts(...list);
     }).catch((err) => {
       console.log(err);
     })
@@ -80,15 +91,24 @@ function ProductList() {
   };
 
   let onDeleteProduct = () => {
-    updateProducts((prev) =>
-      prev.filter((product) => product.pId !== delProduct.pId)
-    );
-    updateProductList((prev) =>
-      prev.filter((product) => product.pId !== delProduct.pId)
-    );
-    updateDelModel(false);
-    updateDelProduct({});
-    productsCtx.onDeleteProduct(delProduct);
+    console.log(delProduct,"find ID")
+    axios.delete(`https://react-practice-01-832c4-default-rtdb.firebaseio.com/products/${delProduct.id}.json`).then((res) => {
+      console.log(res);
+      updateProducts((prev) =>
+        prev.filter((product) => product.id !== delProduct.id)
+      );
+      updateProductList((prev) =>
+        prev.filter((product) => product.id !== delProduct.id)
+      );
+      updateDelModel(false);
+      updateDelProduct({});
+      productsCtx.onDeleteProduct(delProduct);
+
+
+    }).catch((err) => {
+      console.log(err);
+    })
+
   };
 
   let searchProduct = (eve) => {
@@ -157,7 +177,7 @@ function ProductList() {
               newProducts.map((product) => (
                 <li
                   className="list-group-item"
-                  key={product.pId}
+                  key={product.id}
                   style={{
                     backgroundColor:
                       !product.isAvailable && filterState === "All"
