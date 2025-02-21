@@ -5,8 +5,10 @@ import "./Products.css";
 import ProductsContext from "../context/ProductsContext";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
+import useHttp from "../custom-hooks/use-http";
 
 function ProductList() {
+  const useHttpHook = useHttp();
   const productsCtx = useContext(ProductsContext);
   const location = useLocation();
   const isProductPage = location.pathname.includes('list_products');
@@ -20,30 +22,29 @@ function ProductList() {
   let [fbProducts, updateFbProducts] = useState([]);
 
   // If we make empty array useEffect will run only once when the component is mounted even if component rendered any number of times
+  
+  
+  
   useEffect(() => {
     if (products.length !== productsCtx.products.length) {
       updateProductList([...productsCtx.products]);
     }
+  }, [productsCtx.products, products.length]);
 
-
-    axios.get('https://react-practice-01-832c4-default-rtdb.firebaseio.com/products.json').then((res) => {
-      // console.log(Object.values(res.data),"data");
+  
+  useEffect( () => {
+    const getProducts = async() =>{    
+      const response = await useHttpHook.fetchData('/products');
       let list = [];
-        if(res.data !== null){
-          
-           list = Object.entries(res.data).map(([key, value]) => ({
-            ...value,
-            id: key
-          }));
-        }
-
-      updateFbProducts(...list);
-    }).catch((err) => {
-      console.log(err);
-    })
-
-
-
+      if(response !== null){
+        list = Object.entries(response).map(([key, value]) => ({
+          ...value,
+          id: key
+        }));
+        updateFbProducts(list);
+      }
+    }
+    getProducts();
   }, [productsCtx.products]);
 
   useEffect(() => {
@@ -90,10 +91,10 @@ function ProductList() {
     updateDelModel(false);
   };
 
-  let onDeleteProduct = () => {
+  let onDeleteProduct = async () => {
     console.log(delProduct,"find ID")
-    axios.delete(`https://react-practice-01-832c4-default-rtdb.firebaseio.com/products/${delProduct.id}.json`).then((res) => {
-      console.log(res);
+    const response = await useHttpHook.deleteData(`/products`, delProduct.id);
+    // if(response !== null){
       updateProducts((prev) =>
         prev.filter((product) => product.id !== delProduct.id)
       );
@@ -103,11 +104,7 @@ function ProductList() {
       updateDelModel(false);
       updateDelProduct({});
       productsCtx.onDeleteProduct(delProduct);
-
-
-    }).catch((err) => {
-      console.log(err);
-    })
+    // }
 
   };
 

@@ -22,8 +22,10 @@ const Input = React.forwardRef((props, ref) => {
         aria-describedby="emailHelp"
         placeholder={props.placeholder}
         required={props.required}
+        onBlur={() => props.handleBlurEvent("fullName", props.value)}
       />
-    </div>
+      {props.error && <div style={{width: "100%", marginTop: "0.25rem", fontSize: "0.875em", color: "#dc3545"}}>{props.error}</div>}
+      </div>
   );
 });
 

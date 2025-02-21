@@ -1,8 +1,11 @@
 import { useContext, useState  } from "react";
 import ProductsContext from "../context/ProductsContext";
+import useHttp from "../custom-hooks/use-http";
 
 
 function CreateProduct(props){
+
+    let useHttpHook = useHttp();
     let page = useContext(ProductsContext);
     let [product,setProduct] = useState({
         pName : "",
@@ -12,7 +15,7 @@ function CreateProduct(props){
     })
 
 
-   let  addNewProduct = (eve) =>{
+   let  addNewProduct = async (eve) =>{
     eve.preventDefault();
         let item = {
             pName : product?.pName,
@@ -29,21 +32,32 @@ function CreateProduct(props){
         // })
 
 
-        fetch('https://react-practice-01-832c4-default-rtdb.firebaseio.com/products.json',{
-            method: 'POST',
-            body: JSON.stringify(item),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then((res) =>res.json()).then((res) =>{
+        // fetch('https://react-practice-01-832c4-default-rtdb.firebaseio.com/products.json',{
+        //     method: 'POST',
+        //     body: JSON.stringify(item),
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     }
+        // }).then((res) =>res.json()).then((res) =>{
 
-            item.id = res.name
+        //     item.id = res.name
+        //     page.onAddProduct(item);
+
+        //     // return res.json();
+        // }).catch((err) => {
+        //     console.log(err);
+        // })
+
+
+        const response = await useHttpHook.createData('/products', item);
+        console.log(response,"from create");
+
+        if(response !== null){
+            item.id = response.name;
             page.onAddProduct(item);
+        }
 
-            // return res.json();
-        }).catch((err) => {
-            console.log(err);
-        })
+
 
     }
 
