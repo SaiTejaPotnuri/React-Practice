@@ -1,6 +1,6 @@
 import React, { useRef, useImperativeHandle } from "react";
 
-const Input = React.forwardRef((props, ref) => {
+const Input = React.forwardRef(({divClass,labelClass,label,type,value,onChangeHandler=() => {},onInputHandler = () => {},handleBlurEvent = () => {},id,placeholder,required,error}, ref) => {
   const inputRef = useRef(null);
 
   useImperativeHandle(ref, () => ({
@@ -9,22 +9,22 @@ const Input = React.forwardRef((props, ref) => {
   }));
 
   return (
-    <div className={props.divClass}>
-      <label className={props.labelClass}>{props.label}</label>
+    <div className={divClass}>
+      <label className={labelClass}>{label}</label>
       <input
         ref={inputRef}
-        type={props.type}
-        value={props.value}
+        type={type}
+        value={value}
         className="form-control"
-        onChange={props.onChangeHandler}
-        onInput={props.onInputHandler}
-        id={props.id}
+        onChange={onChangeHandler}
+        onInput={onInputHandler}
+        id={id}
         aria-describedby="emailHelp"
-        placeholder={props.placeholder}
-        required={props.required}
-        onBlur={() => props.handleBlurEvent("fullName", props.value)}
+        placeholder={placeholder}
+        required={required}
+        onBlur={() => handleBlurEvent("fullName", value)}
       />
-      {props.error && <div style={{width: "100%", marginTop: "0.25rem", fontSize: "0.875em", color: "#dc3545"}}>{props.error}</div>}
+      {error && <div style={{width: "100%", marginTop: "0.25rem", fontSize: "0.875em", color: "#dc3545"}}>{error}</div>}
       </div>
   );
 });
