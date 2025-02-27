@@ -4,112 +4,129 @@ import { useEffect, useState, useContext, useMemo } from "react";
 import "./Products.css";
 import ProductsContext from "../context/ProductsContext";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
 import useHttp from "../custom-hooks/use-http";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteProduct } from "../store/productSlice";
 
 function ProductList() {
   const useHttpHook = useHttp();
   const productsCtx = useContext(ProductsContext);
   const location = useLocation();
-  const isProductPage = location.pathname.includes('list_products');
-  
-  let [newProducts, updateProducts] = useState(productsCtx.products || []);
-  let [products, updateProductList] = useState([]);
-  let [filterState, updateFilterState] = useState("All");
-  let [showDelModel, updateDelModel] = useState(false);
-  let [delProduct, updateDelProduct] = useState({});
-  let [searchProductkey, updateSearchProduct] = useState("");
-  let [fbProducts, updateFbProducts] = useState([]);
+  const isProductPage = location.pathname.includes("list_products");
+  const productListFromStore = useSelector((state) => state.products.products);
+  const dispatch = useDispatch();
 
-  // If we make empty array useEffect will run only once when the component is mounted even if component rendered any number of times
-  
-  
-  
+  // This stores the master list of products - don't modify directly
+  const [masterProducts, setMasterProducts] = useState([]);
+
+  // State for UI interactions
+  const [filterState, setFilterState] = useState("All");
+  const [showDelModel, setShowDelModel] = useState(false);
+  const [delProduct, setDelProduct] = useState({});
+  const [searchProductkey, setSearchProductKey] = useState("");
+  const [fbProducts, setFbProducts] = useState([]);
+
+  // Sync with context products when they change
   useEffect(() => {
-    if (products.length !== productsCtx.products.length) {
-      updateProductList([...productsCtx.products]);
+    console.log("Products context changed:", productsCtx.products);
+    if (productsCtx.products && productsCtx.products.length > 0) {
+      setMasterProducts(productsCtx.products);
     }
-  }, [productsCtx.products, products.length]);
-
-  
-  useEffect( () => {
-    const getProducts = async() =>{    
-      const response = await useHttpHook.fetchData('/products');
-      let list = [];
-      if(response !== null){
-        list = Object.entries(response).map(([key, value]) => ({
-          ...value,
-          id: key
-        }));
-        updateFbProducts(list);
-      }
-    }
-    getProducts();
   }, [productsCtx.products]);
 
+  // Fetch products from API on initial load
   useEffect(() => {
-    updateProducts(filteredProducts);
-  }, [products, filterState]);
+    const getProducts = async () => {
+      const response = await useHttpHook.fetchData("/products");
+      if (response !== null) {
+        const list = Object.entries(response).map(([key, value]) => ({
+          ...value,
+          id: key,
+        }));
+        setFbProducts(list);
+        // Only update if we don't have products already
+        if (masterProducts.length === 0) {
+          setMasterProducts(list);
+        }
+      }
+    };
+    getProducts();
+  }, []);
 
-  /** useMemo it is used to memoize the function and it is used for complex or long running functions
-   * If you see above search functionality it is taking time to load items so we can use useMemo to solve this problem */
+  // Filter products based on filterState - doesn't modify master list
   const filteredProducts = useMemo(() => {
     if (filterState === "All") {
-      return products;
+      return masterProducts;
     } else if (filterState === "Available") {
-      return products.filter((product) => product.isAvailable === true);
+      return masterProducts.filter((product) => product.isAvailable === true);
     } else if (filterState === "UnAvailable") {
-      return products.filter((product) => product.isAvailable === false);
+      return masterProducts.filter((product) => product.isAvailable === false);
     }
-    return products;
-  }, [products, filterState]);
+    return masterProducts;
+  }, [masterProducts, filterState]);
 
-  const searchResults = useMemo(() => {
-    console.log("from useMemo");
+  // Further filter based on search - doesn't modify filtered list
+  const displayProducts = useMemo(() => {
     if (searchProductkey?.length > 0) {
       return filteredProducts.filter((product) =>
-        product.pName.toLowerCase().includes(searchProductkey.toLowerCase())
+        product.pName?.toLowerCase().includes(searchProductkey.toLowerCase())
       );
     }
     return filteredProducts;
   }, [searchProductkey, filteredProducts]);
 
-  useEffect(() => {
-    updateProducts(searchResults);
-  }, [searchResults]);
-
-  let onFilterSelected = (selected) => {
-    updateFilterState(selected);
+  const onFilterSelected = (selected) => {
+    setFilterState(selected);
   };
 
-  let OnDelete = (product) => {
-    updateDelModel(true);
-    updateDelProduct(product);
+  const onDelete = (product) => {
+    setShowDelModel(true);
+    setDelProduct(product);
   };
 
-  let hideModel = () => {
-    updateDelModel(false);
+  const hideModel = () => {
+    setShowDelModel(false);
   };
 
-  let onDeleteProduct = async () => {
-    console.log(delProduct,"find ID")
-    const response = await useHttpHook.deleteData(`/products`, delProduct.id);
-    // if(response !== null){
-      updateProducts((prev) =>
-        prev.filter((product) => product.id !== delProduct.id)
-      );
-      updateProductList((prev) =>
-        prev.filter((product) => product.id !== delProduct.id)
-      );
-      updateDelModel(false);
-      updateDelProduct({});
+  const onDeleteProduct = async () => {
+    try {
+      // Delete from backend
+      await useHttpHook.deleteData(`/products`, delProduct.id);
+
+      // Update context FIRST - this is important
       productsCtx.onDeleteProduct(delProduct);
-    // }
 
+      // Update master product list based on ID
+      setMasterProducts((prevProducts) => {
+        return prevProducts.filter((product) => {
+          // Check for exact match of the ID
+          if (delProduct.id) {
+            return product.id !== delProduct.id;
+          }
+          if (delProduct.pId) {
+            return product.pId !== delProduct.pId;
+          }
+          return true; // Keep product if we can't determine the ID
+        });
+      });
+
+      // Update Redux store if needed
+      if (delProduct.id) {
+        dispatch(deleteProduct(delProduct.id));
+      } else if (delProduct.pId) {
+        dispatch(deleteProduct(delProduct.pId));
+      }
+
+      // Reset delete modal
+      setShowDelModel(false);
+      setDelProduct({});
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
   };
 
-  let searchProduct = (eve) => {
-    updateSearchProduct(eve.target.value);
+  const searchProduct = (eve) => {
+    setSearchProductKey(eve.target.value);
   };
 
   // Only render when on products page
@@ -126,9 +143,9 @@ function ProductList() {
 
             <div className="d-flex align-items-center justify-content-center">
               <FilterProduct
-                disable={products.length === 0}
+                disable={masterProducts.length === 0}
                 onFilterSelected={onFilterSelected}
-              ></FilterProduct>
+              />
               <div className="container">
                 <div className="row">
                   <div className="col-md-12 mx-auto">
@@ -137,7 +154,7 @@ function ProductList() {
                       className="form-control"
                       placeholder="Search..."
                       aria-label="Search"
-                      disabled={products.length === 0}
+                      disabled={masterProducts.length === 0}
                       onInput={searchProduct}
                     />
                   </div>
@@ -166,15 +183,15 @@ function ProductList() {
               </div>
             </li>
 
-            {newProducts.length === 0 && (
+            {displayProducts.length === 0 && (
               <li className="list-group-item">No products found</li>
             )}
 
-            {newProducts.length > 0 &&
-              newProducts.map((product) => (
+            {displayProducts.length > 0 &&
+              displayProducts.map((product) => (
                 <li
                   className="list-group-item"
-                  key={product.id}
+                  key={product.id || product.pId || Math.random()}
                   style={{
                     backgroundColor:
                       !product.isAvailable && filterState === "All"
@@ -213,7 +230,7 @@ function ProductList() {
                         className="bi bi-trash"
                         viewBox="0 0 16 16"
                         style={{ cursor: "pointer" }}
-                        onClick={() => OnDelete(product)}
+                        onClick={() => onDelete(product)}
                       >
                         <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
                       </svg>{" "}

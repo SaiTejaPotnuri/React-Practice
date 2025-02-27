@@ -1,15 +1,19 @@
 import React from "react";
 import { AuthProvider } from "./context/AuthContext";
 import { RouterProvider } from "react-router-dom";
-import AppRouting from "./routings/AppRouting"
+import AppRouting from "./routings/AppRouting";
+import { Provider as ReduxProvider } from "react-redux";
+import store from "./store/store";
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="main-container">
-        <RouterProvider router={AppRouting} />
-      </div>
-    </AuthProvider>
+    <ReduxProvider store={store}>
+      <AuthProvider>
+        <div className="main-container">
+          <RouterProvider router={AppRouting} />
+        </div>
+      </AuthProvider>
+    </ReduxProvider>
   );
 }
 

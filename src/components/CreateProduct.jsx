@@ -1,10 +1,13 @@
 import { useContext, useState  } from "react";
 import ProductsContext from "../context/ProductsContext";
 import useHttp from "../custom-hooks/use-http";
+import { useDispatch } from "react-redux";
+import {addProduct} from '../store/productSlice';
 
 
 function CreateProduct(props){
 
+    let dispatch = useDispatch();
     let useHttpHook = useHttp();
     let page = useContext(ProductsContext);
     let [product,setProduct] = useState({
@@ -55,6 +58,7 @@ function CreateProduct(props){
         if(response !== null){
             item.id = response.name;
             page.onAddProduct(item);
+            dispatch(addProduct(item));
         }
 
 
